@@ -2,13 +2,13 @@ module Main(main) where
 
 import System.IO
 import System.Environment
-import Control.Applicative((<*>))
+import Control.Applicative((<*>), pure)
 import Data.List(intercalate)
 
 countingFunctions = [length . lines, length . words, length]
 
 count :: String -> [Int]
-count s = countingFunctions <*> [s]
+count = (countingFunctions <*>) . pure
 
 showCount = intercalate " " . map show . count
 
