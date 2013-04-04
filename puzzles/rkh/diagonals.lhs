@@ -88,7 +88,7 @@ For at vi skal få diagonaler her må vi speile igjen og så transponere:
 [4]
 [8,7]
 
-> leftDiagonals m = transpose [upper, lower]
+> leftDiagonals m = concatMap transpose [upper, lower]
 >   where upper = upperTriangle m
 >         lower = mirrorOf $ lowerTriangle m
 
