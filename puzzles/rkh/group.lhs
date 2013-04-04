@@ -22,7 +22,7 @@ Ingen imports, din kode her:
 >           | otherwise = [reverse ys] ++ loop xs [x]
 
 > chunks :: Int -> [a] -> [[a]]
-> chunks n = group (\_ group -> length group == n)
+> chunks n = group (\_ group -> length group < n)
 
 Denne redefinerer funksjon fra Prelude, så tuller med navnet
 
