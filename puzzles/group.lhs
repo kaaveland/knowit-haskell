@@ -16,6 +16,6 @@ Main*> chunks 3 [1..10]
 [[1,2,3],[4,5,6],[7,8,9],[10]]]
 
 Og groupBy slik:
-groupBy predicate = group (\x y -> x `predicate` y)
+groupBy predicate = group (\x ys -> x `predicate` (head ys))
 
 Ingen imports, din kode her:
