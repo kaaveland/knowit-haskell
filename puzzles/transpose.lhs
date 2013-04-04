@@ -6,6 +6,7 @@ rad-vektorene i input-matrisen.
 
 Pseudo-kode for en imparativ løsning:
 
+```
 Matrix transpose(Matrix m)
     Matrix transposed = new Matrix()
     transposed.width = m.height
@@ -14,6 +15,7 @@ Matrix transpose(Matrix m)
     for i = 0 to m.width
         for j = 0 to m.height
             transposed[j][i] = m[i][j]
+```
 
 Ikke benytt funksjoner som ikke finnes i Prelude (ingen imports)
 
