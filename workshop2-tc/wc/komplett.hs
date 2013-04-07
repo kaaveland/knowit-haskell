@@ -1,13 +1,13 @@
 {-# LANGUAGE DeriveDataTypeable #-}
 module Main(main) where
 
-import Data.List(intercalate)
 import System.Exit(exitFailure)
 import System.Console.CmdArgs(cmdArgsMode, name, explicit, (&=), help,
                               Data(..), args, helpArg, program, Typeable(..),
                               cmdArgsRun, summary, details)
 import Control.Applicative((<*>), pure)
-import Control.Monad(mapM, mapM_)
+import Control.Monad(mapM, mapM_, liftM, when)
+import Control.Arrow(second)
 
 data Wc = WcProgram
           { paths :: [FilePath]
@@ -61,10 +61,6 @@ validate wc
 getCount :: String -> [Int]
 getCount = (counters <*>) . pure
 
-countFile :: FilePath -> IO [Int]
-countFile "-" = getContents >>= return . getCount
-countFile p = readFile p >>= return . getCount
-
 outputSettings :: Wc -> [Bool]
 outputSettings = ([lineCount, wordCount, charCount, maxLines] <*>) . pure
 
@@ -74,7 +70,17 @@ chooseOutput wc counts = map snd selected
         selected = filter fst $ zip settings counts
 
 formatOutput :: [Int] -> String
-formatOutput = intercalate " " . map show
+formatOutput = unwords . map show
+
+fetch :: FilePath -> IO String
+fetch "-" = getContents
+fetch f = readFile f
+
+countFiles :: [FilePath] -> IO [[Int]]
+countFiles = mapM countFile
+
+countFile :: FilePath -> IO [Int]
+countFile = liftM getCount . fetch
 
 wcStdin :: Wc -> IO ()
 wcStdin wc = do counts <- countFile "-"
@@ -82,6 +88,7 @@ wcStdin wc = do counts <- countFile "-"
                 putStrLn $ "- " ++ formatOutput outp
 
 printTotal :: Wc -> [[Int]] -> IO ()
+printTotal _ [] = return ()
 printTotal wc xs = if maxLines wc
                    then putStrLn $ "Total " ++ max
                    else putStrLn $ "Total " ++ total
@@ -89,21 +96,19 @@ printTotal wc xs = if maxLines wc
         elementWiseSum = foldr1 (zipWith (+)) xs
         max = show $ maximum $ concat xs
 
+printFileStat :: (FilePath, [Int]) -> IO ()
+printFileStat (name, counts) = putStrLn $ name ++ " " ++ formatOutput counts
+
 runWc :: Wc -> IO ()
 runWc wc
-  | length (paths wc) == 0 = wcStdin wc
+  | null (paths wc) = wcStdin wc
   | otherwise = do
-    counts <- mapM countFile (paths wc)
+    let actualPaths = paths wc ++ [ "-" | readStdin wc ]
+    counts <- countFiles actualPaths
     let withNames = zip (paths wc) counts
-    additionally <- if readStdin wc then countFile "-" else return $ repeat 0
-    let withNames' = if readStdin wc
-                     then withNames ++ [("-", additionally)]
-                     else withNames
-    let out = map (\(name, counts) -> (name, chooseOutput wc counts)) withNames'
-    mapM_ (\(name, counts) -> putStrLn $ name ++ " " ++ (formatOutput counts)) out
-    if length out > 1
-      then printTotal wc $ map snd out
-      else return ()
+    let out = map (second $ chooseOutput wc) withNames
+    mapM_ printFileStat out
+    when (length out > 1) $ printTotal wc $ map snd out
 
 main :: IO ()
 main = do wc <- cmdArgsRun wc
