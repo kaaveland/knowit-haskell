@@ -22,9 +22,9 @@ Eksempel:
 Gåte: Kan Occurs oppføre seg som en Monad? Hvorfor/hvorfor ikke?
 Hint:
 
-(>>=) :: Monad m => m a -> (a -> m b) -> m b
+`(>>=) :: Monad m => m a -> (a -> m b) -> m b`
 
-return :: Monad m => a -> m a
+`return :: Monad m => a -> m a`
 
 Nei. Vi kan vise hvorfor med å implementere:
 
@@ -40,8 +40,7 @@ Right identity for monader sier at:
 
 Her kan vi enkelt lage et mot-eksempel:
 
-*Main> let x = Many 3 "hei" in (x >>= return) == x
-False
+`*Main> let x = Many 3 "hei" in (x >>= return) == x`
 
 Dette skjer fordi >>= "skreller" vekk Many-konstruktøren og return putter in i
 Once konstruktøren. Pga. av typen til >>= kan vi ikke lage en konstruktør som
