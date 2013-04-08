@@ -1,6 +1,8 @@
-Gitt følgende data-type:
+Tillatte imports:
 
 > import Data.List
+
+Gitt følgende data-type:
 
 > data Occurs a = Once a | Many Int a deriving (Eq, Ord)
 
