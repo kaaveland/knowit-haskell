@@ -11,7 +11,6 @@ Implementer Show for Occurs slik at enten bare a skrives ut eller a => antall
 Eksempel:
 
 *Main> show [Once 3, Many 3 2]
-
 "[3, 3 => 2]"
 
 Gåte: Kan Occurs oppføre seg som en Monad? Hvorfor/hvorfor ikke?
