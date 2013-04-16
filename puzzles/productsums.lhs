@@ -8,5 +8,6 @@ Another example is 4:
 Write the predicate:
 
 > isProductSum :: Integral a => a -> Bool
+> isProductSum = undefined
 
 That is True when a number is a product sum number and otherwise false.
