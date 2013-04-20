@@ -20,9 +20,6 @@ spanL fn xs = go [] fn xs
           | fn xss = (reverse ac, xss)
           | otherwise = go (x : ac) fn xs
 
-breakL :: ([a] -> Bool) -> [a] -> ([a], [a])
-breakL fn = spanL (not . fn)
-
 splitList :: Eq a => [a] -> [a] -> [[a]]
 splitList [] xs = uncat xs
 splitList _ [] = []
@@ -58,21 +55,22 @@ complementSlices slices = applySlices (map complement slices)
         complement (To i) = From i
         complement (One i) = Delete i
         complement (Range lo hi) = Unrange lo hi
+        complement x = x
 
 parseRange :: Parser Slice
 parseRange = do low <- many1 digit
-                char '-'
+                _ <- char '-'
                 hi <- many1 digit
                 return (Range (read low - 1) (read hi - 1))
 
 parseTo :: Parser Slice
-parseTo = do char '-'
+parseTo = do _ <- char '-'
              hi <- many1 digit
              return (To $ read hi - 1)
 
 parseFrom :: Parser Slice
 parseFrom = do low <- many1 digit
-               char '-'
+               _ <- char '-'
                return (From $ read low - 1)
 
 parseOne :: Parser Slice
@@ -96,10 +94,10 @@ cont (Delete i) = i
 validateSlice :: Slice -> Either String Slice
 validateSlice slice@(Range lo hi)
   | lo >= hi = Left "Invalid slice, start should be before end"
-  | lo == -1 || hi == -1 = Left "Invalid slice, cuts are 1-indexed"
+  | lo < 0 = Left "Invalid slice, cuts are 1-indexed"
   | otherwise = Right slice
 validateSlice slice
-  | cont slice == -1 = Left "Invalid slice, cuts are 1-indexed"
+  | cont slice < 0 = Left "Invalid slice, cuts are 1-indexed"
   | otherwise = Right slice
 
 makeSlices :: String -> Either String [Slice]
