@@ -140,7 +140,7 @@ doCutLine :: CutOptions -> [Slice] -> String -> Maybe String
 doCutLine opts slices line = splice $ select $ split line
   where split = splitList (delimiter opts)
         splice l
-          | (delim `isInfixOf` line) && onlyDelimited opts = Nothing
+          | not (delim `isInfixOf` line) && onlyDelimited opts = Nothing
           | otherwise = Just $ intercalate outdelim l
         select = (if complement opts then complementSlices else applySlices) slices
         delim = delimiter opts
