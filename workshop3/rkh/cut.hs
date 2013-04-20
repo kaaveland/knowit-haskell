@@ -36,6 +36,8 @@ data Slice = From Int
            | To Int
            | One Int
            | Range Int Int
+           | Delete Int
+           | Unrange Int Int
            deriving (Show, Eq)
 
 slice :: Slice -> [a] -> [a]
@@ -43,15 +45,19 @@ slice (From x) = drop x
 slice (To x) = take x
 slice (One x) = \l -> [l !! x | x < length l]
 slice (Range low hi) = take (hi - low) . drop low
+slice (Delete i) = map snd . filter (\(ix, _) -> ix /= i) . zip [0..]
+slice (Unrange low hi) = map snd . filter (\(ix, _) -> ix < low || ix > hi) . zip [0..]
 
 applySlices :: [Slice] -> [a] -> [a]
 applySlices slices list = concatMap apply slices
   where apply s = slice s list
 
-complementSlices :: Eq a => [Slice] -> [a] -> [a]
-complementSlices slices xs = filter notContained xs
-  where notContained =  (`notElem` sliced)
-        sliced = applySlices slices xs
+complementSlices :: [Slice] -> [a] -> [a]
+complementSlices slices = applySlices (map complement slices)
+  where complement (From i) = To i
+        complement (To i) = From i
+        complement (One i) = Delete i
+        complement (Range lo hi) = Unrange lo hi
 
 parseRange :: Parser Slice
 parseRange = do low <- many1 digit
@@ -84,6 +90,8 @@ cont (One i) = i
 cont (To i) = i
 cont (From i) = i
 cont (Range i _) = i
+cont (Unrange i _) = i
+cont (Delete i) = i
 
 validateSlice :: Slice -> Either String Slice
 validateSlice slice@(Range lo hi)
@@ -150,7 +158,7 @@ getFileContent p = readFile p
 defaultOptions :: CutOptions
 defaultOptions =
   CutOptions { fields = "" &= help "spec(,spec)*"
-             , delimiter = "\t" &= help "delimit by this string"
+             , delimiter = "" &= help "delimit by this string"
              , chars = "" &= help "spec(,spec)*" &= name "c"
              , complement = False &= help "Complement chosen fields or chars"
              , files = [] &= args
@@ -178,7 +186,7 @@ chain :: [CutOptions -> CutOptions] -> CutOptions -> CutOptions
 chain = flip (foldr id)
 
 postProcess :: CutOptions -> CutOptions
-postProcess = chain [setoutDelim, addStdin]
+postProcess = chain [setinDelim, setoutDelim, addStdin]
   where setoutDelim opts
           | hasContent $ outputDelimiter opts = opts
           | hasContent $ chars opts = opts
@@ -186,7 +194,11 @@ postProcess = chain [setoutDelim, addStdin]
         addStdin opts
           | hasContent $ files opts = opts
           | otherwise = opts { files = ["-"] }
-
+        setinDelim opts
+          | hasContent (delimiter opts) = opts
+          | hasContent (chars opts) = opts { delimiter = "" }
+          | otherwise = opts { delimiter = "\t" }
+                                      
 runCut :: CutOptions -> [Slice] -> IO ()
 runCut opts slices = forM_ (files opts) cutFile
   where cutFile path = do content <- getFileContent path
