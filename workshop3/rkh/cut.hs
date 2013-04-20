@@ -167,12 +167,17 @@ defaultOptions =
              }
 
 description :: [String]
-description = [ "Remove sections from each line of input files."
-              ,  "One of --chars --fields must be given. Separates lines using"
-              , "--delimiter (defaults to TAB). Splice chosen fields using"
-              , "--outputdelimiter when printing result. This defaults to --delimiter"
-              , "when using --fields or the empty string when using --chars."
-              , "With --onlyDelimited, prints only lines that contain delimiter."]
+description =
+  [ "Remove sections from each line of input files, default to stdin if no args."
+  , ""
+  , "One of --chars --fields must be given. Separates lines using --delimiter"
+  , "(defaults to TAB). Splice chosen fields using --outputdelimiter when printing"
+  , "when printing result. This defaults to --delimiter when using --fields or the"
+  , "empty string when using --chars. With --only--delimited, prints only lines that"
+  , "contain delimiter."
+  , ""
+  , "spec may be on one of the following formats:"
+  , "start-end | start- | -end | index"]
 
 cutDefault :: Mode (CmdArgs CutOptions)
 cutDefault = cmdArgsMode $ defaultOptions
