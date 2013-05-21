@@ -11,3 +11,4 @@
 *.toc
 ws1/calc
 ws1/factor
+.DS_Store
